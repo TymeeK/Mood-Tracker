@@ -10,6 +10,8 @@ import SwiftData
 
 @main
 struct Mood_TrackerApp: App {
+    @AppStorage("appearanceMode") private var appearanceRaw: String = AppearanceMode.system.rawValue
+
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
             MoodEntry.self,
@@ -26,6 +28,7 @@ struct Mood_TrackerApp: App {
     var body: some Scene {
         WindowGroup {
             MainTabView()
+                .preferredColorScheme(AppearanceMode(rawValue: appearanceRaw)?.colorScheme)
                 .task {
                     #if DEBUG
                     if ProcessInfo.processInfo.environment["SEED_SAMPLE_DATA"] == "1" {

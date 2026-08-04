@@ -28,7 +28,11 @@ struct SettingsView: View {
                 }
 
                 Section("App") {
-                    Label("Appearance", systemImage: "paintbrush")
+                    NavigationLink {
+                        AppearanceView()
+                    } label: {
+                        Label("Appearance", systemImage: "paintbrush")
+                    }
                     Label("Privacy", systemImage: "lock.shield")
                 }
 
