@@ -20,7 +20,11 @@ struct SettingsView: View {
                     } label: {
                         Label("Profile", systemImage: "person.circle")
                     }
-                    Label("Notifications", systemImage: "bell")
+                    NavigationLink {
+                        NotificationsView()
+                    } label: {
+                        Label("Notifications", systemImage: "bell")
+                    }
                 }
 
                 Section("App") {
