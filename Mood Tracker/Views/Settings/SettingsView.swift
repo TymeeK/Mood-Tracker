@@ -15,7 +15,11 @@ struct SettingsView: View {
         NavigationStack {
             List {
                 Section("Account") {
-                    Label("Profile", systemImage: "person.circle")
+                    NavigationLink {
+                        ProfileView()
+                    } label: {
+                        Label("Profile", systemImage: "person.circle")
+                    }
                     Label("Notifications", systemImage: "bell")
                 }
 

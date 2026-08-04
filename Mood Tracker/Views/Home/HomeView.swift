@@ -41,14 +41,7 @@ struct HomeView: View {
     // MARK: - Header
 
     private var header: some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text(MoodStyle.greeting())
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-            Text("How is your mood today?")
-                .font(.title2.weight(.bold))
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        GreetingHeader(title: "How is your mood today?")
     }
 
     private var reflectButton: some View {
@@ -161,9 +154,18 @@ struct HomeView: View {
     }
 
     private var currentStreak: Int {
-        var streak = 0
-        var day = calendar.startOfDay(for: Date())
         let entryDays = Set(entries.map { calendar.startOfDay(for: $0.date) })
+        var day = calendar.startOfDay(for: Date())
+
+        // Today doesn't count against the streak until the day is over —
+        // fall back to yesterday so an unlogged "today" doesn't zero out
+        // an otherwise unbroken streak.
+        if !entryDays.contains(day) {
+            guard let yesterday = calendar.date(byAdding: .day, value: -1, to: day) else { return 0 }
+            day = yesterday
+        }
+
+        var streak = 0
         while entryDays.contains(day) {
             streak += 1
             guard let previous = calendar.date(byAdding: .day, value: -1, to: day) else { break }
@@ -192,7 +194,7 @@ struct HomeView: View {
             }
 
             statCard(
-                title: "Day Streak",
+                title: "Current Streak",
                 value: "\(currentStreak)",
                 accent: MoodStyle.color(for: 8)
             ) {

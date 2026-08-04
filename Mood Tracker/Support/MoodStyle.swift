@@ -56,12 +56,17 @@ enum MoodStyle {
         )
     }
 
-    static func greeting() -> String {
+    static func greeting(name: String = "") -> String {
         let hour = Calendar.current.component(.hour, from: Date())
+        let base: String
         switch hour {
-        case ..<12: return "Good morning"
-        case 12..<18: return "Good afternoon"
-        default: return "Good evening"
+        case ..<12: base = "Good morning"
+        case 12..<18: base = "Good afternoon"
+        default: base = "Good evening"
         }
+
+        let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedName.isEmpty else { return base }
+        return "\(base), \(trimmedName)"
     }
 }

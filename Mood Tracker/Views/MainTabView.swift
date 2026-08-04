@@ -22,7 +22,7 @@ struct MainTabView: View {
                 }
                 .tag(Tab.home)
 
-            ContentView()
+            MoodEntryView()
                 .tabItem {
                     Label("Mood", systemImage: "face.smiling")
                 }

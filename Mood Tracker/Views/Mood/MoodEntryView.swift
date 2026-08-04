@@ -1,5 +1,5 @@
 //
-//  ContentView.swift
+//  MoodEntryView.swift
 //  Mood Tracker
 //
 //  Created by Tymee Kong on 8/2/26.
@@ -8,7 +8,7 @@
 import SwiftUI
 import SwiftData
 
-struct ContentView: View {
+struct MoodEntryView: View {
     @Environment(\.modelContext) private var modelContext
 
     @State private var moodScore: Int = 5
@@ -48,15 +48,7 @@ struct ContentView: View {
     }
 
     private var header: some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text(MoodStyle.greeting())
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-            Text("How are you feeling?")
-                .font(.title2)
-                .fontWeight(.bold)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        GreetingHeader(title: "How are you feeling?")
     }
 
     private var heroCard: some View {
@@ -192,6 +184,6 @@ struct ContentView: View {
 }
 
 #Preview {
-    ContentView()
+    MoodEntryView()
         .modelContainer(for: MoodEntry.self, inMemory: true)
 }
