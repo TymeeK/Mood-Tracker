@@ -12,7 +12,7 @@ import SwiftData
 struct Mood_TrackerApp: App {
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
-            Item.self,
+            MoodEntry.self,
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 
@@ -25,7 +25,14 @@ struct Mood_TrackerApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            MainTabView()
+                .task {
+                    #if DEBUG
+                    if ProcessInfo.processInfo.environment["SEED_SAMPLE_DATA"] == "1" {
+                        SampleData.seed(context: sharedModelContainer.mainContext)
+                    }
+                    #endif
+                }
         }
         .modelContainer(sharedModelContainer)
     }
