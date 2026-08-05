@@ -7,8 +7,14 @@ import SwiftUI
 import SwiftData
 
 struct MoodHistoryView: View {
+    enum ViewMode: String, CaseIterable {
+        case list = "List"
+        case calendar = "Calendar"
+    }
+
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \MoodEntry.date, order: .reverse) private var entries: [MoodEntry]
+    @State private var viewMode: ViewMode = .list
 
     var body: some View {
         NavigationStack {
@@ -19,23 +25,40 @@ struct MoodHistoryView: View {
                 if entries.isEmpty {
                     emptyState
                 } else {
-                    List {
-                        ForEach(entries) { entry in
-                            entryCard(entry)
-                                .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
-                                .listRowSeparator(.hidden)
-                                .listRowBackground(Color.clear)
-                                .swipeActions {
-                                    Button(role: .destructive) {
-                                        modelContext.delete(entry)
-                                    } label: {
-                                        Label("Delete", systemImage: "trash")
-                                    }
+                    VStack(spacing: 0) {
+                        Picker("View", selection: $viewMode) {
+                            ForEach(ViewMode.allCases, id: \.self) { mode in
+                                Text(mode.rawValue).tag(mode)
+                            }
+                        }
+                        .pickerStyle(.segmented)
+                        .padding(.horizontal, 16)
+                        .padding(.top, 8)
+                        .padding(.bottom, 4)
+
+                        switch viewMode {
+                        case .list:
+                            List {
+                                ForEach(entries) { entry in
+                                    entryCard(entry)
+                                        .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
+                                        .listRowSeparator(.hidden)
+                                        .listRowBackground(Color.clear)
+                                        .swipeActions {
+                                            Button(role: .destructive) {
+                                                modelContext.delete(entry)
+                                            } label: {
+                                                Label("Delete", systemImage: "trash")
+                                            }
+                                        }
                                 }
+                            }
+                            .listStyle(.plain)
+                            .scrollContentBackground(.hidden)
+                        case .calendar:
+                            MoodCalendarView(entries: entries)
                         }
                     }
-                    .listStyle(.plain)
-                    .scrollContentBackground(.hidden)
                 }
             }
             .navigationTitle("History")
