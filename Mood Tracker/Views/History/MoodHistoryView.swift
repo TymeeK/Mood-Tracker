@@ -10,6 +10,7 @@ struct MoodHistoryView: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \MoodEntry.date, order: .reverse) private var entries: [MoodEntry]
     @State private var viewModel = MoodHistoryViewModel()
+    @State private var editingEntry: MoodEntry?
 
     var body: some View {
         NavigationStack {
@@ -39,6 +40,10 @@ struct MoodHistoryView: View {
                                         .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
                                         .listRowSeparator(.hidden)
                                         .listRowBackground(Color.clear)
+                                        .contentShape(Rectangle())
+                                        .onTapGesture {
+                                            editingEntry = entry
+                                        }
                                         .swipeActions {
                                             Button(role: .destructive) {
                                                 viewModel.delete(entry, context: modelContext)
@@ -57,6 +62,9 @@ struct MoodHistoryView: View {
                 }
             }
             .navigationTitle("History")
+            .sheet(item: $editingEntry) { entry in
+                EditMoodEntryView(entry: entry)
+            }
         }
     }
 

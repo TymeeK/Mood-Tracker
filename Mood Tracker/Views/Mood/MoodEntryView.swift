@@ -30,11 +30,11 @@ struct MoodEntryView: View {
                     VStack(spacing: 24) {
                         header
 
-                        heroCard
+                        MoodHeroCard(moodScore: viewModel.moodScore)
 
-                        moodPicker
+                        MoodScorePicker(moodScore: $viewModel.moodScore)
 
-                        summaryCard
+                        MoodSummaryEditor(summary: $viewModel.summary, isFocused: $summaryFieldFocused)
 
                         saveButton
                     }
@@ -53,89 +53,6 @@ struct MoodEntryView: View {
 
     private var header: some View {
         GreetingHeader(title: "How are you feeling?")
-    }
-
-    private var heroCard: some View {
-        VStack(spacing: 8) {
-            Text(MoodStyle.emoji(for: viewModel.moodScore))
-                .font(.system(size: 72))
-                .scaleEffect(1.0)
-                .id(viewModel.moodScore)
-                .transition(.scale.combined(with: .opacity))
-                .animation(.spring(response: 0.35, dampingFraction: 0.6), value: viewModel.moodScore)
-
-            Text("\(viewModel.moodScore) / 10")
-                .font(.title3.weight(.semibold))
-                .foregroundStyle(.secondary)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 28)
-        .background(
-            RoundedRectangle(cornerRadius: 28, style: .continuous)
-                .fill(.regularMaterial)
-        )
-        .shadow(color: MoodStyle.color(for: viewModel.moodScore).opacity(0.25), radius: 16, y: 8)
-    }
-
-    private var moodPicker: some View {
-        HStack(spacing: 4) {
-            ForEach(1...10, id: \.self) { score in
-                let isSelected = score == viewModel.moodScore
-                Button {
-                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                        viewModel.moodScore = score
-                    }
-                } label: {
-                    Text("\(score)")
-                        .font(.caption.weight(isSelected ? .bold : .medium))
-                        .foregroundStyle(isSelected ? .white : .primary)
-                        .frame(width: isSelected ? 30 : 24, height: isSelected ? 30 : 24)
-                        .background(
-                            Circle()
-                                .fill(isSelected ? AnyShapeStyle(MoodStyle.gradient(for: score)) : AnyShapeStyle(.thinMaterial))
-                        )
-                        .overlay(
-                            Circle()
-                                .strokeBorder(isSelected ? MoodStyle.color(for: score) : .clear, lineWidth: 2)
-                                .padding(-2)
-                        )
-                }
-                .buttonStyle(.plain)
-            }
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 14)
-        .padding(.horizontal, 6)
-        .background(
-            RoundedRectangle(cornerRadius: 22, style: .continuous)
-                .fill(.thinMaterial)
-        )
-    }
-
-    private var summaryCard: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("What's on your mind?")
-                .font(.subheadline.weight(.medium))
-                .foregroundStyle(.secondary)
-
-            ZStack(alignment: .topLeading) {
-                if viewModel.summary.isEmpty {
-                    Text("Write a little about what happened today…")
-                        .foregroundStyle(.tertiary)
-                        .padding(.top, 8)
-                        .padding(.leading, 5)
-                }
-                TextEditor(text: $viewModel.summary)
-                    .scrollContentBackground(.hidden)
-                    .frame(height: 130)
-                    .focused($summaryFieldFocused)
-            }
-        }
-        .padding(16)
-        .background(
-            RoundedRectangle(cornerRadius: 22, style: .continuous)
-                .fill(.thinMaterial)
-        )
     }
 
     private var saveButton: some View {

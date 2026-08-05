@@ -13,8 +13,25 @@ final class MoodEntryViewModel {
     var summary: String = ""
     var showSavedBanner = false
 
+    private let editingEntry: MoodEntry?
+
+    init(entry: MoodEntry? = nil) {
+        editingEntry = entry
+        if let entry {
+            moodScore = entry.moodScore
+            summary = entry.summary
+        }
+    }
+
     var canSave: Bool {
         !summary.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
+    /// Applies the current mood/summary back onto the entry being edited.
+    func saveEdits() {
+        guard let editingEntry else { return }
+        editingEntry.moodScore = moodScore
+        editingEntry.summary = summary.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     func save(context: ModelContext, existingEntries: [MoodEntry], remindersEnabled: Bool, hour: Int, minute: Int) {

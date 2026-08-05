@@ -11,6 +11,7 @@ struct MoodCalendarView: View {
     let entries: [MoodEntry]
 
     @State private var viewModel = MoodCalendarViewModel()
+    @State private var editingEntry: MoodEntry?
 
     private let calendar = Calendar.current
     private let accent = MoodStyle.color(for: 8)
@@ -27,6 +28,9 @@ struct MoodCalendarView: View {
         }
         .onAppear {
             viewModel.selectDefaultDateIfNeeded(entries: entries)
+        }
+        .sheet(item: $editingEntry) { entry in
+            EditMoodEntryView(entry: entry)
         }
     }
 
@@ -159,7 +163,16 @@ struct MoodCalendarView: View {
                     .foregroundStyle(.secondary)
             }
         }
+        .contentShape(Rectangle())
+        .onTapGesture {
+            editingEntry = entry
+        }
         .contextMenu {
+            Button {
+                editingEntry = entry
+            } label: {
+                Label("Edit", systemImage: "pencil")
+            }
             Button(role: .destructive) {
                 viewModel.delete(entry, context: modelContext, entriesByDay: entriesByDay)
             } label: {
