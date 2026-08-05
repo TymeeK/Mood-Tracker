@@ -5,6 +5,7 @@
 
 import SwiftUI
 import SwiftData
+import Charts
 
 struct HomeView: View {
     @Binding var selectedTab: MainTabView.Tab
@@ -14,7 +15,7 @@ struct HomeView: View {
     @AppStorage("reminderHour") private var reminderHour = 20
     @AppStorage("reminderMinute") private var reminderMinute = 0
 
-    private let calendar = Calendar.current
+    @State private var viewModel = HomeViewModel()
 
     var body: some View {
         NavigationStack {
@@ -32,7 +33,7 @@ struct HomeView: View {
                         } else {
                             weekCard
                             statsRow
-                            recentSection
+                            trendSection
                         }
                     }
                     .padding(20)
@@ -41,9 +42,7 @@ struct HomeView: View {
             .navigationBarTitleDisplayMode(.inline)
         }
         .onAppear {
-            if remindersEnabled {
-                NotificationScheduler.refreshSchedule(hour: reminderHour, minute: reminderMinute, entries: entries)
-            }
+            viewModel.scheduleRemindersIfNeeded(remindersEnabled: remindersEnabled, hour: reminderHour, minute: reminderMinute, entries: entries)
         }
     }
 
@@ -97,15 +96,6 @@ struct HomeView: View {
 
     // MARK: - This week
 
-    private var weekDates: [Date] {
-        guard let interval = calendar.dateInterval(of: .weekOfYear, for: Date()) else { return [] }
-        return (0..<7).compactMap { calendar.date(byAdding: .day, value: $0, to: interval.start) }
-    }
-
-    private func entry(on date: Date) -> MoodEntry? {
-        entries.first { calendar.isDate($0.date, inSameDayAs: date) }
-    }
-
     private var weekCard: some View {
         VStack(alignment: .leading, spacing: 14) {
             Text("This Week")
@@ -113,9 +103,9 @@ struct HomeView: View {
                 .foregroundStyle(.secondary)
 
             HStack(spacing: 6) {
-                ForEach(weekDates, id: \.self) { date in
-                    let dayEntry = entry(on: date)
-                    let isToday = calendar.isDateInToday(date)
+                ForEach(viewModel.weekDates, id: \.self) { date in
+                    let dayEntry = viewModel.entry(on: date, in: entries)
+                    let isToday = Calendar.current.isDateInToday(date)
 
                     VStack(spacing: 6) {
                         Text(date, format: .dateTime.weekday(.narrow))
@@ -151,40 +141,11 @@ struct HomeView: View {
 
     // MARK: - Stats
 
-    private var thisWeekEntries: [MoodEntry] {
-        guard let interval = calendar.dateInterval(of: .weekOfYear, for: Date()) else { return [] }
-        return entries.filter { interval.contains($0.date) }
-    }
-
-    private var weeklyAverage: Double {
-        guard !thisWeekEntries.isEmpty else { return 0 }
-        let total = thisWeekEntries.reduce(0) { $0 + $1.moodScore }
-        return Double(total) / Double(thisWeekEntries.count)
-    }
-
-    private var currentStreak: Int {
-        let entryDays = Set(entries.map { calendar.startOfDay(for: $0.date) })
-        var day = calendar.startOfDay(for: Date())
-
-        // Today doesn't count against the streak until the day is over —
-        // fall back to yesterday so an unlogged "today" doesn't zero out
-        // an otherwise unbroken streak.
-        if !entryDays.contains(day) {
-            guard let yesterday = calendar.date(byAdding: .day, value: -1, to: day) else { return 0 }
-            day = yesterday
-        }
-
-        var streak = 0
-        while entryDays.contains(day) {
-            streak += 1
-            guard let previous = calendar.date(byAdding: .day, value: -1, to: day) else { break }
-            day = previous
-        }
-        return streak
-    }
-
     private var statsRow: some View {
-        HStack(spacing: 12) {
+        let weeklyAverage = viewModel.weeklyAverage(from: entries)
+        let currentStreak = viewModel.currentStreak(from: entries)
+
+        return HStack(spacing: 12) {
             statCard(
                 title: "Weekly Average",
                 value: weeklyAverage > 0 ? String(format: "%.1f", weeklyAverage) : "–",
@@ -236,12 +197,14 @@ struct HomeView: View {
         )
     }
 
-    // MARK: - Recent entries
+    // MARK: - Trend
 
-    private var recentSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+    private var trendSection: some View {
+        let trendEntries = viewModel.trendEntries(from: entries)
+
+        return VStack(alignment: .leading, spacing: 14) {
             HStack {
-                Text("Recent")
+                Text("Trend")
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(.secondary)
                 Spacer()
@@ -253,30 +216,43 @@ struct HomeView: View {
                 }
             }
 
-            VStack(spacing: 10) {
-                ForEach(entries.prefix(3)) { entry in
-                    HStack(spacing: 12) {
-                        Text(entry.emoji)
-                            .font(.system(size: 24))
-                            .frame(width: 40, height: 40)
-                            .background(Circle().fill(MoodStyle.color(for: entry.moodScore).opacity(0.18)))
+            if trendEntries.count < 2 {
+                Text("Log a few more moods to see your trend.")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding(.vertical, 24)
+            } else {
+                Chart(trendEntries) { entry in
+                    LineMark(
+                        x: .value("Date", entry.date, unit: .day),
+                        y: .value("Mood", entry.moodScore)
+                    )
+                    .interpolationMethod(.catmullRom)
+                    .foregroundStyle(MoodStyle.gradient(for: 8))
+                    .symbol {
+                        Circle()
+                            .fill(MoodStyle.color(for: entry.moodScore))
+                            .frame(width: 6, height: 6)
+                    }
 
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(entry.summary)
-                                .font(.subheadline)
-                                .lineLimit(1)
-                            Text(entry.date, format: .dateTime.month().day())
-                                .font(.caption2)
-                                .foregroundStyle(.secondary)
-                        }
-
-                        Spacer()
-
-                        Text("\(entry.moodScore)")
-                            .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(MoodStyle.color(for: entry.moodScore))
+                    AreaMark(
+                        x: .value("Date", entry.date, unit: .day),
+                        y: .value("Mood", entry.moodScore)
+                    )
+                    .interpolationMethod(.catmullRom)
+                    .foregroundStyle(MoodStyle.gradient(for: 8).opacity(0.15))
+                }
+                .chartYScale(domain: 0...10)
+                .chartYAxis {
+                    AxisMarks(position: .leading, values: [0, 5, 10])
+                }
+                .chartXAxis {
+                    AxisMarks(values: .stride(by: .day, count: 3)) { _ in
+                        AxisValueLabel(format: .dateTime.month().day())
                     }
                 }
+                .frame(height: 160)
             }
         }
         .padding(16)

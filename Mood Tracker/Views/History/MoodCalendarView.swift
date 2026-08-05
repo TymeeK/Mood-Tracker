@@ -10,8 +10,7 @@ struct MoodCalendarView: View {
     @Environment(\.modelContext) private var modelContext
     let entries: [MoodEntry]
 
-    @State private var displayedMonth: Date = Date()
-    @State private var selectedDate: Date?
+    @State private var viewModel = MoodCalendarViewModel()
 
     private let calendar = Calendar.current
     private let accent = MoodStyle.color(for: 8)
@@ -20,16 +19,14 @@ struct MoodCalendarView: View {
         ScrollView {
             VStack(spacing: 20) {
                 monthCard
-                if let selectedDate, let dayEntries = entriesByDay[calendar.startOfDay(for: selectedDate)] {
+                if let selectedDate = viewModel.selectedDate, let dayEntries = entriesByDay[calendar.startOfDay(for: selectedDate)] {
                     selectedDaySection(date: selectedDate, dayEntries: dayEntries)
                 }
             }
             .padding(20)
         }
         .onAppear {
-            if selectedDate == nil, let mostRecent = entries.first?.date {
-                selectedDate = calendar.isDateInToday(mostRecent) ? mostRecent : nil
-            }
+            viewModel.selectDefaultDateIfNeeded(entries: entries)
         }
     }
 
@@ -39,20 +36,20 @@ struct MoodCalendarView: View {
         VStack(spacing: 16) {
             HStack {
                 Button {
-                    changeMonth(by: -1)
+                    viewModel.changeMonth(by: -1)
                 } label: {
                     Image(systemName: "chevron.left")
                 }
 
                 Spacer()
 
-                Text(displayedMonth, format: .dateTime.month(.wide).year())
+                Text(viewModel.displayedMonth, format: .dateTime.month(.wide).year())
                     .font(.headline)
 
                 Spacer()
 
                 Button {
-                    changeMonth(by: 1)
+                    viewModel.changeMonth(by: 1)
                 } label: {
                     Image(systemName: "chevron.right")
                 }
@@ -60,7 +57,7 @@ struct MoodCalendarView: View {
             .foregroundStyle(.primary)
 
             HStack(spacing: 0) {
-                ForEach(weekdaySymbols, id: \.self) { symbol in
+                ForEach(viewModel.weekdaySymbols, id: \.self) { symbol in
                     Text(symbol)
                         .font(.caption2.weight(.semibold))
                         .foregroundStyle(.secondary)
@@ -69,7 +66,7 @@ struct MoodCalendarView: View {
             }
 
             LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 7), spacing: 10) {
-                ForEach(Array(monthDates.enumerated()), id: \.offset) { _, date in
+                ForEach(Array(viewModel.monthDates.enumerated()), id: \.offset) { _, date in
                     dayCell(date)
                 }
             }
@@ -85,13 +82,11 @@ struct MoodCalendarView: View {
         Group {
             if let date {
                 let isToday = calendar.isDateInToday(date)
-                let isSelected = selectedDate.map { calendar.isDate($0, inSameDayAs: date) } ?? false
+                let isSelected = viewModel.selectedDate.map { calendar.isDate($0, inSameDayAs: date) } ?? false
                 let hasEntry = entriesByDay[calendar.startOfDay(for: date)] != nil
 
                 Button {
-                    withAnimation(.snappy(duration: 0.2)) {
-                        selectedDate = isSelected ? nil : date
-                    }
+                    viewModel.toggleSelection(for: date)
                 } label: {
                     VStack(spacing: 5) {
                         Text("\(calendar.component(.day, from: date))")
@@ -166,54 +161,17 @@ struct MoodCalendarView: View {
         }
         .contextMenu {
             Button(role: .destructive) {
-                deleteEntry(entry)
+                viewModel.delete(entry, context: modelContext, entriesByDay: entriesByDay)
             } label: {
                 Label("Delete", systemImage: "trash")
             }
         }
     }
 
-    private func deleteEntry(_ entry: MoodEntry) {
-        let day = calendar.startOfDay(for: entry.date)
-        let isLastEntryForDay = entriesByDay[day]?.count == 1
-        modelContext.delete(entry)
-        if isLastEntryForDay {
-            selectedDate = nil
-        }
-    }
-
     // MARK: - Data helpers
 
     private var entriesByDay: [Date: [MoodEntry]] {
-        Dictionary(grouping: entries) { calendar.startOfDay(for: $0.date) }
-    }
-
-    private var weekdaySymbols: [String] {
-        let symbols = calendar.veryShortWeekdaySymbols
-        let start = calendar.firstWeekday - 1
-        return Array(symbols[start...] + symbols[..<start])
-    }
-
-    private var monthDates: [Date?] {
-        guard let monthInterval = calendar.dateInterval(of: .month, for: displayedMonth) else { return [] }
-        let firstOfMonth = monthInterval.start
-
-        let weekdayOfFirst = calendar.component(.weekday, from: firstOfMonth)
-        let leadingEmptyCount = (weekdayOfFirst - calendar.firstWeekday + 7) % 7
-
-        let dayCount = calendar.range(of: .day, in: .month, for: firstOfMonth)?.count ?? 0
-
-        var dates: [Date?] = Array(repeating: nil, count: leadingEmptyCount)
-        dates += (0..<dayCount).compactMap { calendar.date(byAdding: .day, value: $0, to: firstOfMonth) }
-        while dates.count % 7 != 0 { dates.append(nil) }
-        return dates
-    }
-
-    private func changeMonth(by value: Int) {
-        guard let newMonth = calendar.date(byAdding: .month, value: value, to: displayedMonth) else { return }
-        withAnimation(.snappy(duration: 0.2)) {
-            displayedMonth = newMonth
-        }
+        viewModel.entriesByDay(from: entries)
     }
 }
 

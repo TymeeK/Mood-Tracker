@@ -16,16 +16,15 @@ struct MoodEntryView: View {
     @AppStorage("reminderHour") private var reminderHour = 20
     @AppStorage("reminderMinute") private var reminderMinute = 0
 
-    @State private var moodScore: Int = 5
-    @State private var summary: String = ""
-    @State private var showSavedBanner = false
+    @State private var viewModel = MoodEntryViewModel()
+    @FocusState private var summaryFieldFocused: Bool
 
     var body: some View {
         NavigationStack {
             ZStack {
-                MoodStyle.backgroundGradient(for: moodScore)
+                MoodStyle.backgroundGradient(for: viewModel.moodScore)
                     .ignoresSafeArea()
-                    .animation(.easeInOut(duration: 0.4), value: moodScore)
+                    .animation(.easeInOut(duration: 0.4), value: viewModel.moodScore)
 
                 ScrollView {
                     VStack(spacing: 24) {
@@ -44,7 +43,7 @@ struct MoodEntryView: View {
                     .padding(.bottom, 32)
                 }
 
-                if showSavedBanner {
+                if viewModel.showSavedBanner {
                     savedBanner
                 }
             }
@@ -58,14 +57,14 @@ struct MoodEntryView: View {
 
     private var heroCard: some View {
         VStack(spacing: 8) {
-            Text(MoodStyle.emoji(for: moodScore))
+            Text(MoodStyle.emoji(for: viewModel.moodScore))
                 .font(.system(size: 72))
                 .scaleEffect(1.0)
-                .id(moodScore)
+                .id(viewModel.moodScore)
                 .transition(.scale.combined(with: .opacity))
-                .animation(.spring(response: 0.35, dampingFraction: 0.6), value: moodScore)
+                .animation(.spring(response: 0.35, dampingFraction: 0.6), value: viewModel.moodScore)
 
-            Text("\(moodScore) / 10")
+            Text("\(viewModel.moodScore) / 10")
                 .font(.title3.weight(.semibold))
                 .foregroundStyle(.secondary)
         }
@@ -75,16 +74,16 @@ struct MoodEntryView: View {
             RoundedRectangle(cornerRadius: 28, style: .continuous)
                 .fill(.regularMaterial)
         )
-        .shadow(color: MoodStyle.color(for: moodScore).opacity(0.25), radius: 16, y: 8)
+        .shadow(color: MoodStyle.color(for: viewModel.moodScore).opacity(0.25), radius: 16, y: 8)
     }
 
     private var moodPicker: some View {
         HStack(spacing: 4) {
             ForEach(1...10, id: \.self) { score in
-                let isSelected = score == moodScore
+                let isSelected = score == viewModel.moodScore
                 Button {
                     withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                        moodScore = score
+                        viewModel.moodScore = score
                     }
                 } label: {
                     Text("\(score)")
@@ -120,15 +119,16 @@ struct MoodEntryView: View {
                 .foregroundStyle(.secondary)
 
             ZStack(alignment: .topLeading) {
-                if summary.isEmpty {
+                if viewModel.summary.isEmpty {
                     Text("Write a little about what happened today…")
                         .foregroundStyle(.tertiary)
                         .padding(.top, 8)
                         .padding(.leading, 5)
                 }
-                TextEditor(text: $summary)
+                TextEditor(text: $viewModel.summary)
                     .scrollContentBackground(.hidden)
                     .frame(height: 130)
+                    .focused($summaryFieldFocused)
             }
         }
         .padding(16)
@@ -140,7 +140,8 @@ struct MoodEntryView: View {
 
     private var saveButton: some View {
         Button {
-            saveEntry()
+            summaryFieldFocused = false
+            viewModel.save(context: modelContext, existingEntries: entries, remindersEnabled: remindersEnabled, hour: reminderHour, minute: reminderMinute)
         } label: {
             Text("Save")
                 .font(.headline)
@@ -149,11 +150,11 @@ struct MoodEntryView: View {
                 .padding(.vertical, 16)
                 .background(
                     Capsule()
-                        .fill(MoodStyle.gradient(for: moodScore))
+                        .fill(MoodStyle.gradient(for: viewModel.moodScore))
                 )
         }
-        .opacity(summary.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 0.4 : 1)
-        .disabled(summary.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+        .opacity(viewModel.canSave ? 1 : 0.4)
+        .disabled(!viewModel.canSave)
     }
 
     private var savedBanner: some View {
@@ -167,27 +168,6 @@ struct MoodEntryView: View {
                 .background(Capsule().fill(Color.primary.opacity(0.85)))
                 .padding(.bottom, 24)
                 .transition(.move(edge: .bottom).combined(with: .opacity))
-        }
-    }
-
-    private func saveEntry() {
-        let entry = MoodEntry(moodScore: moodScore, summary: summary.trimmingCharacters(in: .whitespacesAndNewlines))
-        modelContext.insert(entry)
-
-        if remindersEnabled {
-            NotificationScheduler.refreshSchedule(hour: reminderHour, minute: reminderMinute, entries: entries + [entry])
-        }
-
-        moodScore = 5
-        summary = ""
-
-        withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) {
-            showSavedBanner = true
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-            withAnimation(.easeOut(duration: 0.3)) {
-                showSavedBanner = false
-            }
         }
     }
 }

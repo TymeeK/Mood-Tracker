@@ -7,14 +7,9 @@ import SwiftUI
 import SwiftData
 
 struct MoodHistoryView: View {
-    enum ViewMode: String, CaseIterable {
-        case list = "List"
-        case calendar = "Calendar"
-    }
-
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \MoodEntry.date, order: .reverse) private var entries: [MoodEntry]
-    @State private var viewMode: ViewMode = .list
+    @State private var viewModel = MoodHistoryViewModel()
 
     var body: some View {
         NavigationStack {
@@ -26,8 +21,8 @@ struct MoodHistoryView: View {
                     emptyState
                 } else {
                     VStack(spacing: 0) {
-                        Picker("View", selection: $viewMode) {
-                            ForEach(ViewMode.allCases, id: \.self) { mode in
+                        Picker("View", selection: $viewModel.viewMode) {
+                            ForEach(MoodHistoryViewModel.ViewMode.allCases, id: \.self) { mode in
                                 Text(mode.rawValue).tag(mode)
                             }
                         }
@@ -36,7 +31,7 @@ struct MoodHistoryView: View {
                         .padding(.top, 8)
                         .padding(.bottom, 4)
 
-                        switch viewMode {
+                        switch viewModel.viewMode {
                         case .list:
                             List {
                                 ForEach(entries) { entry in
@@ -46,7 +41,7 @@ struct MoodHistoryView: View {
                                         .listRowBackground(Color.clear)
                                         .swipeActions {
                                             Button(role: .destructive) {
-                                                modelContext.delete(entry)
+                                                viewModel.delete(entry, context: modelContext)
                                             } label: {
                                                 Label("Delete", systemImage: "trash")
                                             }

@@ -14,8 +14,7 @@ struct NotificationsView: View {
 
     @Query(sort: \MoodEntry.date, order: .reverse) private var entries: [MoodEntry]
 
-    @State private var reminderTime = Date()
-    @State private var permissionDenied = false
+    @State private var viewModel = NotificationsViewModel()
 
     var body: some View {
         Form {
@@ -23,18 +22,22 @@ struct NotificationsView: View {
                 Toggle("Daily Reminder", isOn: $remindersEnabled)
                     .onChange(of: remindersEnabled) { _, isOn in
                         if isOn {
-                            enableReminders()
+                            viewModel.enableReminders(hour: reminderHour, minute: reminderMinute, entries: entries) { granted in
+                                if !granted {
+                                    remindersEnabled = false
+                                }
+                            }
                         } else {
                             NotificationScheduler.cancel()
                         }
                     }
 
                 if remindersEnabled {
-                    DatePicker("Time", selection: $reminderTime, displayedComponents: .hourAndMinute)
-                        .onChange(of: reminderTime) { _, newValue in
-                            let components = Calendar.current.dateComponents([.hour, .minute], from: newValue)
-                            reminderHour = components.hour ?? reminderHour
-                            reminderMinute = components.minute ?? reminderMinute
+                    DatePicker("Time", selection: $viewModel.reminderTime, displayedComponents: .hourAndMinute)
+                        .onChange(of: viewModel.reminderTime) { _, newValue in
+                            let components = viewModel.components(from: newValue)
+                            reminderHour = components.hour
+                            reminderMinute = components.minute
                             NotificationScheduler.refreshSchedule(hour: reminderHour, minute: reminderMinute, entries: entries)
                         }
                 }
@@ -42,7 +45,7 @@ struct NotificationsView: View {
                 Text("We'll send a reminder to log your mood every day at this time.")
             }
 
-            if permissionDenied {
+            if viewModel.permissionDenied {
                 Section {
                     Text("Notifications are turned off for Mood Tracker in iOS Settings.")
                         .foregroundStyle(.secondary)
@@ -57,36 +60,14 @@ struct NotificationsView: View {
         .navigationTitle("Notifications")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
-            reminderTime = Calendar.current.date(bySettingHour: reminderHour, minute: reminderMinute, second: 0, of: Date()) ?? Date()
-            refreshPermissionStatus()
+            viewModel.loadReminderTime(hour: reminderHour, minute: reminderMinute)
+            viewModel.refreshPermissionStatus { isDenied in
+                if isDenied {
+                    remindersEnabled = false
+                }
+            }
             if remindersEnabled {
                 NotificationScheduler.refreshSchedule(hour: reminderHour, minute: reminderMinute, entries: entries)
-            }
-        }
-    }
-
-    private func enableReminders() {
-        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, _ in
-            DispatchQueue.main.async {
-                permissionDenied = !granted
-                if granted {
-                    NotificationScheduler.refreshSchedule(hour: reminderHour, minute: reminderMinute, entries: entries)
-                } else {
-                    remindersEnabled = false
-                }
-            }
-        }
-    }
-
-    private func refreshPermissionStatus() {
-        UNUserNotificationCenter.current().getNotificationSettings { settings in
-            DispatchQueue.main.async {
-                if settings.authorizationStatus == .denied {
-                    permissionDenied = true
-                    remindersEnabled = false
-                } else {
-                    permissionDenied = false
-                }
             }
         }
     }
