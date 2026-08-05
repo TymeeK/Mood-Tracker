@@ -11,3 +11,6 @@ DerivedData/
 
 # macOS
 .DS_Store
+
+# Chat summaries
+CHAT_SUMMARY.md
