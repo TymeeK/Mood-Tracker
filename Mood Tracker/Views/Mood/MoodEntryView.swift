@@ -10,6 +10,11 @@ import SwiftData
 
 struct MoodEntryView: View {
     @Environment(\.modelContext) private var modelContext
+    @Query(sort: \MoodEntry.date, order: .reverse) private var entries: [MoodEntry]
+
+    @AppStorage("remindersEnabled") private var remindersEnabled = false
+    @AppStorage("reminderHour") private var reminderHour = 20
+    @AppStorage("reminderMinute") private var reminderMinute = 0
 
     @State private var moodScore: Int = 5
     @State private var summary: String = ""
@@ -168,6 +173,10 @@ struct MoodEntryView: View {
     private func saveEntry() {
         let entry = MoodEntry(moodScore: moodScore, summary: summary.trimmingCharacters(in: .whitespacesAndNewlines))
         modelContext.insert(entry)
+
+        if remindersEnabled {
+            NotificationScheduler.refreshSchedule(hour: reminderHour, minute: reminderMinute, entries: entries + [entry])
+        }
 
         moodScore = 5
         summary = ""

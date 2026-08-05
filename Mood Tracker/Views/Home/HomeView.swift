@@ -10,6 +10,10 @@ struct HomeView: View {
     @Binding var selectedTab: MainTabView.Tab
     @Query(sort: \MoodEntry.date, order: .reverse) private var entries: [MoodEntry]
 
+    @AppStorage("remindersEnabled") private var remindersEnabled = false
+    @AppStorage("reminderHour") private var reminderHour = 20
+    @AppStorage("reminderMinute") private var reminderMinute = 0
+
     private let calendar = Calendar.current
 
     var body: some View {
@@ -35,6 +39,11 @@ struct HomeView: View {
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
+        }
+        .onAppear {
+            if remindersEnabled {
+                NotificationScheduler.refreshSchedule(hour: reminderHour, minute: reminderMinute, entries: entries)
+            }
         }
     }
 

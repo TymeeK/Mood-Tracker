@@ -4,12 +4,15 @@
 //
 
 import SwiftUI
+import SwiftData
 import UserNotifications
 
 struct NotificationsView: View {
     @AppStorage("remindersEnabled") private var remindersEnabled = false
     @AppStorage("reminderHour") private var reminderHour = 20
     @AppStorage("reminderMinute") private var reminderMinute = 0
+
+    @Query(sort: \MoodEntry.date, order: .reverse) private var entries: [MoodEntry]
 
     @State private var reminderTime = Date()
     @State private var permissionDenied = false
@@ -32,7 +35,7 @@ struct NotificationsView: View {
                             let components = Calendar.current.dateComponents([.hour, .minute], from: newValue)
                             reminderHour = components.hour ?? reminderHour
                             reminderMinute = components.minute ?? reminderMinute
-                            NotificationScheduler.schedule(hour: reminderHour, minute: reminderMinute)
+                            NotificationScheduler.refreshSchedule(hour: reminderHour, minute: reminderMinute, entries: entries)
                         }
                 }
             } footer: {
@@ -56,6 +59,9 @@ struct NotificationsView: View {
         .onAppear {
             reminderTime = Calendar.current.date(bySettingHour: reminderHour, minute: reminderMinute, second: 0, of: Date()) ?? Date()
             refreshPermissionStatus()
+            if remindersEnabled {
+                NotificationScheduler.refreshSchedule(hour: reminderHour, minute: reminderMinute, entries: entries)
+            }
         }
     }
 
@@ -64,7 +70,7 @@ struct NotificationsView: View {
             DispatchQueue.main.async {
                 permissionDenied = !granted
                 if granted {
-                    NotificationScheduler.schedule(hour: reminderHour, minute: reminderMinute)
+                    NotificationScheduler.refreshSchedule(hour: reminderHour, minute: reminderMinute, entries: entries)
                 } else {
                     remindersEnabled = false
                 }

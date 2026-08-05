@@ -7,27 +7,39 @@ import Foundation
 import UserNotifications
 
 enum NotificationScheduler {
-    private static let identifier = "dailyMoodReminder"
+    private static let identifierPrefix = "dailyMoodReminder-"
+    private static let daysAhead = 7
 
-    static func schedule(hour: Int, minute: Int) {
+    /// Schedules one reminder per upcoming day, skipping any day that already
+    /// has a mood entry (including today, once it's been logged).
+    static func refreshSchedule(hour: Int, minute: Int, entries: [MoodEntry]) {
         let center = UNUserNotificationCenter.current()
-        center.removePendingNotificationRequests(withIdentifiers: [identifier])
+        center.removeAllPendingNotificationRequests()
 
-        let content = UNMutableNotificationContent()
-        content.title = "How are you feeling?"
-        content.body = "Take a moment to log today's mood."
-        content.sound = .default
+        let calendar = Calendar.current
+        let loggedDays = Set(entries.map { calendar.startOfDay(for: $0.date) })
+        let today = calendar.startOfDay(for: Date())
 
-        var dateComponents = DateComponents()
-        dateComponents.hour = hour
-        dateComponents.minute = minute
+        for offset in 0..<daysAhead {
+            guard let day = calendar.date(byAdding: .day, value: offset, to: today),
+                  !loggedDays.contains(day),
+                  let fireDate = calendar.date(bySettingHour: hour, minute: minute, second: 0, of: day),
+                  fireDate > Date()
+            else { continue }
 
-        let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: true)
-        let request = UNNotificationRequest(identifier: identifier, content: content, trigger: trigger)
-        center.add(request)
+            let content = UNMutableNotificationContent()
+            content.title = "How are you feeling?"
+            content.body = "Take a moment to log today's mood."
+            content.sound = .default
+
+            let triggerComponents = calendar.dateComponents([.year, .month, .day, .hour, .minute], from: fireDate)
+            let trigger = UNCalendarNotificationTrigger(dateMatching: triggerComponents, repeats: false)
+            let request = UNNotificationRequest(identifier: identifierPrefix + "\(offset)", content: content, trigger: trigger)
+            center.add(request)
+        }
     }
 
     static func cancel() {
-        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [identifier])
+        UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
     }
 }
