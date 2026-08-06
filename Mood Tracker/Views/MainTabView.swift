@@ -13,6 +13,7 @@ struct MainTabView: View {
     }
 
     @State private var selectedTab: Tab = .home
+    @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
 
     var body: some View {
         TabView(selection: $selectedTab) {
@@ -41,6 +42,12 @@ struct MainTabView: View {
                 .tag(Tab.settings)
         }
         .tint(MoodStyle.color(for: 8))
+        .fullScreenCover(isPresented: .init(
+            get: { !hasCompletedOnboarding },
+            set: { hasCompletedOnboarding = !$0 }
+        )) {
+            OnboardingView()
+        }
     }
 }
 
