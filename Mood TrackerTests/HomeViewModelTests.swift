@@ -26,20 +26,34 @@ struct HomeViewModelTests {
         }
     }
 
-    @Test func entryOnDateMatchesSameDayEntry() {
+    @Test func entriesOnDateReturnsAllSameDayEntries() {
         let viewModel = HomeViewModel()
-        let today = entry(daysAgo: 0, score: 7)
+        let todayFirst = entry(daysAgo: 0, score: 7)
+        let todaySecond = entry(daysAgo: 0, score: 5)
         let yesterday = entry(daysAgo: 1, score: 3)
 
-        let found = viewModel.entry(on: Date(), in: [today, yesterday])
-        #expect(found === today)
+        let found = viewModel.entries(on: Date(), in: [todayFirst, todaySecond, yesterday])
+        #expect(found.count == 2)
+        #expect(found.contains { $0 === todayFirst })
+        #expect(found.contains { $0 === todaySecond })
     }
 
-    @Test func entryOnDateReturnsNilWhenNoMatch() {
+    @Test func entriesOnDateReturnsEmptyWhenNoMatch() {
         let viewModel = HomeViewModel()
         let yesterday = entry(daysAgo: 1, score: 3)
 
-        #expect(viewModel.entry(on: Date(), in: [yesterday]) == nil)
+        #expect(viewModel.entries(on: Date(), in: [yesterday]).isEmpty)
+    }
+
+    @Test func averageScoreIsNilForEmptyEntries() {
+        let viewModel = HomeViewModel()
+        #expect(viewModel.averageScore(for: []) == nil)
+    }
+
+    @Test func averageScoreRoundsMeanOfEntries() {
+        let viewModel = HomeViewModel()
+        let entries = [entry(daysAgo: 0, score: 7), entry(daysAgo: 0, score: 4)]
+        #expect(viewModel.averageScore(for: entries) == 6)
     }
 
     @Test func weeklyAverageIsZeroWithNoEntries() {

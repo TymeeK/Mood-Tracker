@@ -15,8 +15,14 @@ final class HomeViewModel {
         return (0..<7).compactMap { calendar.date(byAdding: .day, value: $0, to: interval.start) }
     }
 
-    func entry(on date: Date, in entries: [MoodEntry]) -> MoodEntry? {
-        entries.first { calendar.isDate($0.date, inSameDayAs: date) }
+    func entries(on date: Date, in entries: [MoodEntry]) -> [MoodEntry] {
+        entries.filter { calendar.isDate($0.date, inSameDayAs: date) }
+    }
+
+    func averageScore(for entries: [MoodEntry]) -> Int? {
+        guard !entries.isEmpty else { return nil }
+        let total = entries.reduce(0) { $0 + $1.moodScore }
+        return Int((Double(total) / Double(entries.count)).rounded())
     }
 
     func thisWeekEntries(from entries: [MoodEntry]) -> [MoodEntry] {

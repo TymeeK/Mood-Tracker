@@ -104,7 +104,8 @@ struct HomeView: View {
 
             HStack(spacing: 6) {
                 ForEach(viewModel.weekDates, id: \.self) { date in
-                    let dayEntry = viewModel.entry(on: date, in: entries)
+                    let dayEntries = viewModel.entries(on: date, in: entries)
+                    let averageScore = viewModel.averageScore(for: dayEntries)
                     let isToday = Calendar.current.isDateInToday(date)
 
                     VStack(spacing: 6) {
@@ -114,11 +115,11 @@ struct HomeView: View {
 
                         ZStack {
                             Circle()
-                                .fill(dayEntry != nil ? MoodStyle.color(for: dayEntry!.moodScore).opacity(0.2) : Color(.tertiarySystemFill))
+                                .fill(averageScore != nil ? MoodStyle.color(for: averageScore!).opacity(0.2) : Color(.tertiarySystemFill))
                                 .frame(width: 34, height: 34)
 
-                            if let dayEntry {
-                                Text(dayEntry.emoji)
+                            if let averageScore {
+                                Text(MoodStyle.emoji(for: averageScore))
                                     .font(.system(size: 16))
                             }
                         }
@@ -127,6 +128,20 @@ struct HomeView: View {
                                 .strokeBorder(isToday ? MoodStyle.color(for: 8) : .clear, lineWidth: 2)
                                 .frame(width: 34, height: 34)
                         )
+                        .overlay(alignment: .topTrailing) {
+                            if dayEntries.count > 1 {
+                                Text("\(dayEntries.count)")
+                                    .font(.system(size: 9).weight(.bold))
+                                    .foregroundStyle(MoodStyle.color(for: 8))
+                                    .frame(width: 14, height: 14)
+                                    .background(
+                                        Circle()
+                                            .fill(Color(.systemBackground))
+                                            .overlay(Circle().strokeBorder(MoodStyle.color(for: 8), lineWidth: 1))
+                                    )
+                                    .offset(x: 4, y: -4)
+                            }
+                        }
                     }
                     .frame(maxWidth: .infinity)
                 }
