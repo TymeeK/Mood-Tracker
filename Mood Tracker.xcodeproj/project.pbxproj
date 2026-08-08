@@ -24,7 +24,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		9B247540301FE89B00AF8543 /* Mood Tracker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Mood Tracker.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		9B247540301FE89B00AF8543 /* Better Days: Mood.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Better Days: Mood.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		9B24754F301FE89D00AF8543 /* Mood TrackerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Mood TrackerTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		9B247559301FE89D00AF8543 /* Mood TrackerUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Mood TrackerUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -85,7 +85,7 @@
 		9B247541301FE89B00AF8543 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				9B247540301FE89B00AF8543 /* Mood Tracker.app */,
+				9B247540301FE89B00AF8543 /* Better Days: Mood.app */,
 				9B24754F301FE89D00AF8543 /* Mood TrackerTests.xctest */,
 				9B247559301FE89D00AF8543 /* Mood TrackerUITests.xctest */,
 			);
@@ -114,7 +114,7 @@
 			packageProductDependencies = (
 			);
 			productName = "Mood Tracker";
-			productReference = 9B247540301FE89B00AF8543 /* Mood Tracker.app */;
+			productReference = 9B247540301FE89B00AF8543 /* Better Days: Mood.app */;
 			productType = "com.apple.product-type.application";
 		};
 		9B24754E301FE89D00AF8543 /* Mood TrackerTests */ = {
@@ -409,7 +409,7 @@
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.hackingwithswift.Mood-Tracker";
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "Better Days: Mood";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
@@ -441,7 +441,7 @@
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.hackingwithswift.Mood-Tracker";
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "Better Days: Mood";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
