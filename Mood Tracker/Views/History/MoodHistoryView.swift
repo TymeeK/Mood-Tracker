@@ -11,6 +11,8 @@ struct MoodHistoryView: View {
     @Query(sort: \MoodEntry.date, order: .reverse) private var entries: [MoodEntry]
     @State private var viewModel = MoodHistoryViewModel()
     @State private var editingEntry: MoodEntry?
+    @State private var pendingDeletionEntry: MoodEntry?
+    @State private var isShowingDeleteAlert = false
 
     var body: some View {
         NavigationStack {
@@ -46,7 +48,8 @@ struct MoodHistoryView: View {
                                         }
                                         .swipeActions {
                                             Button(role: .destructive) {
-                                                viewModel.delete(entry, context: modelContext)
+                                                pendingDeletionEntry = entry
+                                                isShowingDeleteAlert = true
                                             } label: {
                                                 Label("Delete", systemImage: "trash")
                                             }
@@ -64,6 +67,19 @@ struct MoodHistoryView: View {
             .navigationTitle("History")
             .sheet(item: $editingEntry) { entry in
                 EditMoodEntryView(entry: entry)
+            }
+            .alert(
+                "Delete this entry?",
+                isPresented: $isShowingDeleteAlert,
+                presenting: pendingDeletionEntry
+            ) { entry in
+                Button("Cancel", role: .cancel) {}
+                    .tint(.blue)
+                Button("Delete", role: .destructive) {
+                    viewModel.delete(entry, context: modelContext)
+                }
+            } message: { _ in
+                Text("This mood entry will be permanently deleted.")
             }
         }
     }
