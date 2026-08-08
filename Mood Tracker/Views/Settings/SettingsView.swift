@@ -27,10 +27,6 @@ struct SettingsView: View {
                     }
                 }
 
-                Section("App") {
-                    Label("Privacy", systemImage: "lock.shield")
-                }
-
                 #if DEBUG
                 Section("Developer") {
                     Button {
