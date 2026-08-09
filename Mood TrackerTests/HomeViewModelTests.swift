@@ -97,22 +97,36 @@ struct HomeViewModelTests {
         #expect(viewModel.currentStreak(from: entries) == 1)
     }
 
-    @Test func trendEntriesExcludesOlderThanFourteenDays() {
+    @Test func trendPointsExcludesOlderThanFourteenDays() {
         let viewModel = HomeViewModel()
         let recent = entry(daysAgo: 5, score: 6)
         let old = entry(daysAgo: 20, score: 2)
-        let result = viewModel.trendEntries(from: [old, recent])
+        let result = viewModel.trendPoints(from: [old, recent])
         #expect(result.count == 1)
-        #expect(result.first === recent)
+        #expect(result.first?.averageScore == 6)
+        #expect(calendar.isDate(result[0].date, inSameDayAs: recent.date))
     }
 
-    @Test func trendEntriesAreSortedAscendingByDate() {
+    @Test func trendPointsAreSortedAscendingByDate() {
         let viewModel = HomeViewModel()
         let newer = entry(daysAgo: 1, score: 6)
         let older = entry(daysAgo: 3, score: 2)
-        let result = viewModel.trendEntries(from: [newer, older])
+        let result = viewModel.trendPoints(from: [newer, older])
         #expect(result.count == 2)
-        #expect(result.first === older)
-        #expect(result.last === newer)
+        #expect(calendar.isDate(result[0].date, inSameDayAs: older.date))
+        #expect(calendar.isDate(result[1].date, inSameDayAs: newer.date))
+    }
+
+    @Test func trendPointsCollapseSameDayEntriesToAveragedScore() {
+        let viewModel = HomeViewModel()
+        let morning = entry(daysAgo: 0, score: 7)
+        let evening = entry(daysAgo: 0, score: 4)
+        let yesterday = entry(daysAgo: 1, score: 8)
+
+        let result = viewModel.trendPoints(from: [morning, evening, yesterday])
+
+        #expect(result.count == 2)
+        #expect(result.last?.averageScore == 6)
+        #expect(result.first?.averageScore == 8)
     }
 }

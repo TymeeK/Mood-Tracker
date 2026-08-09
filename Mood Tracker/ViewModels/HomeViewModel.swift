@@ -6,6 +6,13 @@
 import Foundation
 import Observation
 
+struct MoodTrendPoint: Identifiable {
+    let date: Date
+    let averageScore: Int
+
+    var id: Date { date }
+}
+
 @Observable
 final class HomeViewModel {
     private let calendar = Calendar.current
@@ -58,11 +65,18 @@ final class HomeViewModel {
         return streak
     }
 
-    func trendEntries(from entries: [MoodEntry]) -> [MoodEntry] {
+    /// One point per day over the last 14 days, using the averaged score
+    /// when a day has multiple entries (same approach as the week strip).
+    func trendPoints(from entries: [MoodEntry]) -> [MoodTrendPoint] {
         guard let start = calendar.date(byAdding: .day, value: -13, to: calendar.startOfDay(for: Date())) else { return [] }
-        return entries
-            .filter { $0.date >= start }
-            .sorted { $0.date < $1.date }
+        let recent = entries.filter { $0.date >= start }
+        let grouped = Dictionary(grouping: recent) { calendar.startOfDay(for: $0.date) }
+
+        return grouped.compactMap { day, dayEntries -> MoodTrendPoint? in
+            guard let average = averageScore(for: dayEntries) else { return nil }
+            return MoodTrendPoint(date: day, averageScore: average)
+        }
+        .sorted { $0.date < $1.date }
     }
 
     func scheduleRemindersIfNeeded(remindersEnabled: Bool, hour: Int, minute: Int, entries: [MoodEntry]) {

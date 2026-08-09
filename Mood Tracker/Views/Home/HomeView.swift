@@ -215,7 +215,7 @@ struct HomeView: View {
     // MARK: - Trend
 
     private var trendSection: some View {
-        let trendEntries = viewModel.trendEntries(from: entries)
+        let trendPoints = viewModel.trendPoints(from: entries)
 
         return VStack(alignment: .leading, spacing: 14) {
             HStack {
@@ -231,29 +231,29 @@ struct HomeView: View {
                 }
             }
 
-            if trendEntries.count < 2 {
+            if trendPoints.count < 2 {
                 Text("Log a few more moods to see your trend.")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity, alignment: .center)
                     .padding(.vertical, 24)
             } else {
-                Chart(trendEntries) { entry in
+                Chart(trendPoints) { point in
                     LineMark(
-                        x: .value("Date", entry.date, unit: .day),
-                        y: .value("Mood", entry.moodScore)
+                        x: .value("Date", point.date, unit: .day),
+                        y: .value("Mood", point.averageScore)
                     )
                     .interpolationMethod(.catmullRom)
                     .foregroundStyle(MoodStyle.gradient(for: 8))
                     .symbol {
                         Circle()
-                            .fill(MoodStyle.color(for: entry.moodScore))
+                            .fill(MoodStyle.color(for: point.averageScore))
                             .frame(width: 6, height: 6)
                     }
 
                     AreaMark(
-                        x: .value("Date", entry.date, unit: .day),
-                        y: .value("Mood", entry.moodScore)
+                        x: .value("Date", point.date, unit: .day),
+                        y: .value("Mood", point.averageScore)
                     )
                     .interpolationMethod(.catmullRom)
                     .foregroundStyle(MoodStyle.gradient(for: 8).opacity(0.15))
