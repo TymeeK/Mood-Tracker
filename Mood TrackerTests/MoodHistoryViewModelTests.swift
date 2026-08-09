@@ -29,7 +29,14 @@ struct MoodHistoryViewModelTests {
         try context.save()
 
         let viewModel = MoodHistoryViewModel()
-        viewModel.delete(entry, context: context)
+        viewModel.delete(
+            entry,
+            context: context,
+            allEntries: [entry],
+            remindersEnabled: false,
+            hour: 20,
+            minute: 0
+        )
         try context.save()
 
         let remaining = try context.fetch(FetchDescriptor<MoodEntry>())

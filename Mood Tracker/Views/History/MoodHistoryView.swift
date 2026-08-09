@@ -9,6 +9,9 @@ import SwiftData
 struct MoodHistoryView: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \MoodEntry.date, order: .reverse) private var entries: [MoodEntry]
+    @AppStorage("remindersEnabled") private var remindersEnabled = false
+    @AppStorage("reminderHour") private var reminderHour = 20
+    @AppStorage("reminderMinute") private var reminderMinute = 0
     @State private var viewModel = MoodHistoryViewModel()
     @State private var editingEntry: MoodEntry?
     @State private var pendingDeletionEntry: MoodEntry?
@@ -76,7 +79,14 @@ struct MoodHistoryView: View {
                 Button("Cancel", role: .cancel) {}
                     .tint(.blue)
                 Button("Delete", role: .destructive) {
-                    viewModel.delete(entry, context: modelContext)
+                    viewModel.delete(
+                        entry,
+                        context: modelContext,
+                        allEntries: entries,
+                        remindersEnabled: remindersEnabled,
+                        hour: reminderHour,
+                        minute: reminderMinute
+                    )
                 }
             } message: { _ in
                 Text("This mood entry will be permanently deleted.")

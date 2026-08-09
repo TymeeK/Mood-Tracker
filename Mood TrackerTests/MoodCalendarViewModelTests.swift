@@ -119,8 +119,17 @@ struct MoodCalendarViewModelTests {
         context.insert(onlyEntry)
         viewModel.selectedDate = Date()
 
-        let entriesByDay = viewModel.entriesByDay(from: [onlyEntry])
-        viewModel.delete(onlyEntry, context: context, entriesByDay: entriesByDay)
+        let allEntries = [onlyEntry]
+        let entriesByDay = viewModel.entriesByDay(from: allEntries)
+        viewModel.delete(
+            onlyEntry,
+            context: context,
+            entriesByDay: entriesByDay,
+            allEntries: allEntries,
+            remindersEnabled: false,
+            hour: 20,
+            minute: 0
+        )
 
         #expect(viewModel.selectedDate == nil)
     }
@@ -135,8 +144,17 @@ struct MoodCalendarViewModelTests {
         let selection = Date()
         viewModel.selectedDate = selection
 
-        let entriesByDay = viewModel.entriesByDay(from: [first, second])
-        viewModel.delete(first, context: context, entriesByDay: entriesByDay)
+        let allEntries = [first, second]
+        let entriesByDay = viewModel.entriesByDay(from: allEntries)
+        viewModel.delete(
+            first,
+            context: context,
+            entriesByDay: entriesByDay,
+            allEntries: allEntries,
+            remindersEnabled: false,
+            hour: 20,
+            minute: 0
+        )
 
         #expect(viewModel.selectedDate != nil)
     }

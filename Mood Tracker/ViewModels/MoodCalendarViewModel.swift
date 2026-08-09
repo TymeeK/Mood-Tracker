@@ -58,12 +58,25 @@ final class MoodCalendarViewModel {
         selectedDate = calendar.isDateInToday(mostRecent) ? mostRecent : nil
     }
 
-    func delete(_ entry: MoodEntry, context: ModelContext, entriesByDay: [Date: [MoodEntry]]) {
+    func delete(
+        _ entry: MoodEntry,
+        context: ModelContext,
+        entriesByDay: [Date: [MoodEntry]],
+        allEntries: [MoodEntry],
+        remindersEnabled: Bool,
+        hour: Int,
+        minute: Int
+    ) {
         let day = calendar.startOfDay(for: entry.date)
         let isLastEntryForDay = entriesByDay[day]?.count == 1
         context.delete(entry)
         if isLastEntryForDay {
             selectedDate = nil
+        }
+
+        if remindersEnabled {
+            let remaining = allEntries.filter { $0 !== entry }
+            NotificationScheduler.refreshSchedule(hour: hour, minute: minute, entries: remaining)
         }
     }
 }

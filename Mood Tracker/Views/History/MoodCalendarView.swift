@@ -10,6 +10,9 @@ struct MoodCalendarView: View {
     @Environment(\.modelContext) private var modelContext
     let entries: [MoodEntry]
 
+    @AppStorage("remindersEnabled") private var remindersEnabled = false
+    @AppStorage("reminderHour") private var reminderHour = 20
+    @AppStorage("reminderMinute") private var reminderMinute = 0
     @State private var viewModel = MoodCalendarViewModel()
     @State private var editingEntry: MoodEntry?
     @State private var pendingDeletionEntry: MoodEntry?
@@ -42,7 +45,15 @@ struct MoodCalendarView: View {
             Button("Cancel", role: .cancel) {}
                 .tint(.blue)
             Button("Delete", role: .destructive) {
-                viewModel.delete(entry, context: modelContext, entriesByDay: entriesByDay)
+                viewModel.delete(
+                    entry,
+                    context: modelContext,
+                    entriesByDay: entriesByDay,
+                    allEntries: entries,
+                    remindersEnabled: remindersEnabled,
+                    hour: reminderHour,
+                    minute: reminderMinute
+                )
             }
         } message: { _ in
             Text("This mood entry will be permanently deleted.")
