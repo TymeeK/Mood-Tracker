@@ -16,6 +16,16 @@ enum MoodStyle {
         }
     }
 
+    static func label(for score: Int) -> String {
+        switch score {
+        case 1...2: return "Crying"
+        case 3...4: return "Sad"
+        case 5...6: return "Neutral"
+        case 7...8: return "Happy"
+        default: return "Joyful"
+        }
+    }
+
     static func color(for score: Int) -> Color {
         switch score {
         case 1...2: return Color(red: 0.42, green: 0.45, blue: 0.68)

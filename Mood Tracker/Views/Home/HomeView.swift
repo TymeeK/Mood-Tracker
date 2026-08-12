@@ -223,7 +223,7 @@ struct HomeView: View {
                     .foregroundStyle(.secondary)
                 Spacer()
                 Button {
-                    selectedTab = .history
+                    selectedTab = .insights
                 } label: {
                     Text("See All")
                         .font(.caption.weight(.semibold))

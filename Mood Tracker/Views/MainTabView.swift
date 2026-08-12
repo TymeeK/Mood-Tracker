@@ -9,7 +9,7 @@ import SwiftUI
 
 struct MainTabView: View {
     enum Tab {
-        case home, mood, history, settings
+        case home, mood, history, insights, settings
     }
 
     @State private var selectedTab: Tab = .home
@@ -34,6 +34,12 @@ struct MainTabView: View {
                     Label("History", systemImage: "clock.arrow.circlepath")
                 }
                 .tag(Tab.history)
+
+            InsightsView()
+                .tabItem {
+                    Label("Insights", systemImage: "chart.xyaxis.line")
+                }
+                .tag(Tab.insights)
 
             SettingsView()
                 .tabItem {
