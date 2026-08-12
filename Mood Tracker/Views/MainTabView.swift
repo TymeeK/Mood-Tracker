@@ -23,17 +23,17 @@ struct MainTabView: View {
                 }
                 .tag(Tab.home)
 
-            MoodEntryView()
-                .tabItem {
-                    Label("Mood", systemImage: "face.smiling")
-                }
-                .tag(Tab.mood)
-
             MoodHistoryView()
                 .tabItem {
                     Label("History", systemImage: "clock.arrow.circlepath")
                 }
                 .tag(Tab.history)
+
+            MoodEntryView()
+                .tabItem {
+                    Label("Mood", systemImage: "face.smiling")
+                }
+                .tag(Tab.mood)
 
             InsightsView()
                 .tabItem {
