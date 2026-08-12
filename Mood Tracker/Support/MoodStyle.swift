@@ -6,13 +6,13 @@
 import SwiftUI
 
 enum MoodStyle {
-    static func emoji(for score: Int) -> String {
+    static func iconName(for score: Int) -> String {
         switch score {
-        case 1...2: return "😭"
-        case 3...4: return "😞"
-        case 5...6: return "😐"
-        case 7...8: return "🙂"
-        default: return "😄"
+        case 1...2: return "MoodCrying"
+        case 3...4: return "MoodSad"
+        case 5...6: return "MoodNeutral"
+        case 7...8: return "MoodHappy"
+        default: return "MoodJoyful"
         }
     }
 

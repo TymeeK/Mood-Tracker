@@ -18,7 +18,7 @@ final class MoodEntry {
         self.summary = summary
     }
 
-    var emoji: String {
-        MoodStyle.emoji(for: moodScore)
+    var iconName: String {
+        MoodStyle.iconName(for: moodScore)
     }
 }

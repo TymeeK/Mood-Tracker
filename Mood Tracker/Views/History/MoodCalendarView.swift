@@ -168,8 +168,7 @@ struct MoodCalendarView: View {
 
     private func entryRow(_ entry: MoodEntry) -> some View {
         HStack(alignment: .top, spacing: 14) {
-            Text(entry.emoji)
-                .font(.system(size: 30))
+            MoodIconView(score: entry.moodScore, size: 30)
                 .frame(width: 46, height: 46)
                 .background(
                     Circle().fill(MoodStyle.color(for: entry.moodScore).opacity(0.18))

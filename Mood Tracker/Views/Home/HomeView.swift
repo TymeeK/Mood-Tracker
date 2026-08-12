@@ -119,8 +119,7 @@ struct HomeView: View {
                                 .frame(width: 34, height: 34)
 
                             if let averageScore {
-                                Text(MoodStyle.emoji(for: averageScore))
-                                    .font(.system(size: 16))
+                                MoodIconView(score: averageScore, size: 28)
                             }
                         }
                         .overlay(

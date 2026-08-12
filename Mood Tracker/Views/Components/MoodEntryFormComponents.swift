@@ -10,8 +10,7 @@ struct MoodHeroCard: View {
 
     var body: some View {
         VStack(spacing: 8) {
-            Text(MoodStyle.emoji(for: moodScore))
-                .font(.system(size: 72))
+            MoodIconView(score: moodScore, size: 72)
                 .id(moodScore)
                 .transition(.scale.combined(with: .opacity))
                 .animation(.spring(response: 0.35, dampingFraction: 0.6), value: moodScore)

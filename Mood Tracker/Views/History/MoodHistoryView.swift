@@ -110,8 +110,7 @@ struct MoodHistoryView: View {
 
     private func entryCard(_ entry: MoodEntry) -> some View {
         HStack(alignment: .top, spacing: 14) {
-            Text(entry.emoji)
-                .font(.system(size: 34))
+            MoodIconView(score: entry.moodScore, size: 34)
                 .frame(width: 52, height: 52)
                 .background(
                     Circle().fill(MoodStyle.color(for: entry.moodScore).opacity(0.18))
