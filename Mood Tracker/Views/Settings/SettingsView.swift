@@ -34,6 +34,11 @@ struct SettingsView: View {
                     } label: {
                         Label("Load Sample Data", systemImage: "wand.and.stars")
                     }
+                    Button {
+                        SampleData.seedFullYear(context: modelContext)
+                    } label: {
+                        Label("Load Full Year of Data", systemImage: "calendar.badge.clock")
+                    }
                 }
                 #endif
             }

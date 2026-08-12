@@ -42,6 +42,9 @@ struct Mood_TrackerApp: App {
                         if ProcessInfo.processInfo.environment["SEED_SAMPLE_DATA"] == "1" {
                             SampleData.seed(context: container.mainContext)
                         }
+                        if ProcessInfo.processInfo.environment["SEED_FULL_YEAR_DATA"] == "1" {
+                            SampleData.seedFullYear(context: container.mainContext)
+                        }
                         #endif
                     }
                     .alert("We had to reset your data", isPresented: $isShowingRecoveryAlert) {
