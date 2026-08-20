@@ -46,11 +46,15 @@ struct SettingsView: View {
                 }
                 
                 Section("About") {
-                    Link(destination: URL(string: "https://yourwebsite.com/privacy")!) {
+                    Link(destination: URL(string: "https://tymeek.github.io/Mood-Tracker/privacy.html")!) {
                         Label("Privacy Policy", systemImage: "hand.raised")
                     }
                     
-                    Link(destination: URL(string: "https://yourwebsite.com/support")!) {
+                    Button {
+                        if let url = URL(string: "mailto:tymeekong562@gmail.com") {
+                            UIApplication.shared.open(url)
+                        }
+                    } label: {
                         Label("Support", systemImage: "questionmark.circle")
                     }
                     
